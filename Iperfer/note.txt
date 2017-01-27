@@ -1,0 +1,14 @@
+client: just need to send data
+start timing (System.nanTime())
+while not timeout
+    keep sending data
+    counting data
+calculating and printing
+
+Server: just need to receive data
+while true
+    while (block reading)
+        the first time: start timing
+        counting data
+    finish timing
+    calculating and printing
