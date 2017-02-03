@@ -52,12 +52,11 @@ public class Iperfer{
                 int sentInKB = 0;
                 try{
                         Socket clientSoc = new Socket(serverHost, port);
-                        PrintWriter out = new PrintWriter(clientSoc.getOutputStream(), true);
                         byte[] toSend = new byte[1000];
                         double start = System.nanoTime();
-                        while((System.nanoTime() - start) / 1000000000.0 < time){
-                                out.println(toSend);
-                                sentInKB++;
+			while((System.nanoTime() - start) / 1000000000.0 < time){
+                                clientSoc.getOutputStream().write(toSend);
+				sentInKB++;
                         }
                         clientSoc.close();
                 }catch(UnknownHostException e){
@@ -68,27 +67,26 @@ public class Iperfer{
                                 serverHost);
                         System.exit(1);
                 }
-                double rate = ((double)sentInKB * 1000) * 8.0 / 1000000.0 / time;
+                double rate = ((double)sentInKB) * 8.0 / 1000.0 / time;
                 System.out.format("sent=%d KB rate=%.3f Mbs%n", sentInKB, rate);
         }
 
         public static void iperferServer(int port){
-                int receivedDataInKB = 0;
-                double time = 0.0;
+                int receivedDataInB = 0;
+		
                 try{
-                    while (true) {
-                        ServerSocket serverSoc = new ServerSocket(port);
-                        Socket clientSoc = serverSoc.accept();
-                        BufferedReader in = new BufferedReader(
-                                new InputStreamReader(clientSoc.getInputStream()));
-                        double start = System.nanoTime();
-                        while(in.readLine() != null){
-                                receivedDataInKB++;
-                        }
-                        time = (System.nanoTime() - start) / 1000000000.0;
-                        double rate = ((double)receivedDataInKB * 1000) * 8.0 /1000000.0 / time;
-                        System.out.format("sent=%d KB rate=%f Mbs%n", receivedDataInKB, rate);
-                    }
+			ServerSocket serverSoc = new ServerSocket(port);
+			Socket clientSoc = serverSoc.accept();
+			byte[] toReceive = new byte[1000];
+			double start = System.nanoTime();
+			int read = 0;
+			while (read >= 0) {
+				receivedDataInB += read;
+				read = clientSoc.getInputStream().read(toReceive, 0, 1000);
+			}
+			double time = (System.nanoTime() - start) / 1000000000.0;
+			double rate = ((double)receivedDataInB) * 8.0 / 1000000.0 / time;
+			System.out.format("received=%d KB rate=%f Mbs%n", receivedDataInB / 1000, rate);
                 }catch(IOException e){
                         System.out.println(e.toString());
                 }
